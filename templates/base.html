@@ -1,0 +1,1302 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}School Dashboard{% endblock %}</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+        :root {
+            color-scheme: dark;
+            --bg: #141715;
+            --bg-alt: #191d1a;
+            --primary: #202621;
+            --panel: #202621;
+            --panel-strong: #303a32;
+            --panel-soft: #272e28;
+            --panel-border: #3b463d;
+            --text: #f0eee5;
+            --muted: #b1b9ad;
+            --secondary: #4c6955;
+            --secondary-strong: #3d5745;
+            --secondary-soft: rgba(173, 200, 157, 0.16);
+            --success: #aec99e;
+            --danger: #dc9d8d;
+            --shadow: rgba(0, 0, 0, 0.4);
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            line-height: 1.5;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: clamp(1rem, 3vw, 2rem) clamp(0.75rem, 3vw, 1rem);
+            color: var(--text);
+            background: var(--bg);
+        }
+        h1, h2, h3, p {
+            overflow-wrap: anywhere;
+        }
+        a, button, input, textarea {
+            color: inherit;
+        }
+        header h1 {
+            margin: 0;
+            font-size: clamp(1.6rem, 4vw, 2.2rem);
+            letter-spacing: -0.03em;
+            color: var(--text);
+        }
+        header {
+            margin-bottom: 0.5rem;
+        }
+        main {
+            box-shadow: 0 10px 30px var(--shadow);
+        }
+        main > h2 {
+            margin-top: 0;
+            font-size: clamp(1.45rem, 3vw, 1.8rem);
+            letter-spacing: -0.02em;
+            color: var(--text);
+        }
+        main, form, .homework-card {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 14px;
+            padding: 1rem;
+        }
+        .homework-card {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            column-gap: 1.5rem;
+            margin: 1rem 0;
+            box-shadow: 0 6px 20px rgba(8, 12, 22, 0.2);
+            transition: transform 140ms ease, box-shadow 140ms ease;
+        }
+        .homework-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(8, 12, 22, 0.3);
+        }
+        .homework-course {
+            color: #8fd1e5;
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .homework-title {
+            margin: 0.15rem 0 0.5rem;
+            font-size: clamp(1.15rem, 2.5vw, 1.35rem);
+            color: var(--text);
+        }
+        .homework-description {
+            margin: 0.35rem 0;
+            color: var(--muted);
+        }
+        .homework-due {
+            margin: 0.35rem 0 0;
+            color: var(--muted);
+        }
+        .due-today {
+            margin: 1rem 0 1.25rem;
+            padding: 0.75rem 1rem;
+            border-left: 4px solid var(--danger);
+            border-radius: 10px;
+            background: rgba(242, 108, 122, 0.1);
+            box-shadow: 0 4px 14px rgba(242, 108, 122, 0.1);
+        }
+        .due-today h3 {
+            margin: 0 0 0.4rem;
+            color: #ffb3bc;
+        }
+        .due-today-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.25rem 0;
+        }
+        .due-today-item form {
+            margin: 0;
+        }
+        .due-today-item button {
+            margin: 0;
+            padding: 0.3rem 0.55rem;
+            font-size: 0.85rem;
+        }
+        .due-today-item span {
+            color: var(--muted);
+        }
+        .homework-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex-wrap: nowrap;
+            gap: 0.4rem;
+            margin-top: 0;
+        }
+        .homework-actions form {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            background: transparent;
+        }
+        .homework-actions button,
+        .homework-actions .button {
+            margin: 0;
+            padding: 0.35rem 0.6rem;
+            font-size: 0.9rem;
+        }
+        .homework-status {
+            padding: 0.35rem 0.6rem;
+            border-radius: 4px;
+            background: rgba(34, 197, 94, 0.16);
+            color: #86efac;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        @media (max-width: 700px) {
+            .homework-card {
+                grid-template-columns: 1fr;
+                row-gap: 0.75rem;
+            }
+            .homework-actions {
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+        }
+        .completed {
+            opacity: 0.7;
+        }
+        .completed h2 {
+            text-decoration: line-through;
+        }
+        label {
+            display: block;
+            margin-top: 1rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+        input, textarea {
+            width: 100%;
+            margin-top: 0.25rem;
+            padding: 0.7rem 0.75rem;
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            font: inherit;
+            background: rgba(10, 15, 25, 0.8);
+            color: var(--text);
+            transition: border-color 120ms ease, box-shadow 120ms ease;
+        }
+        input::placeholder, textarea::placeholder {
+            color: rgba(168, 183, 216, 0.75);
+        }
+        input:focus, textarea:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px var(--secondary-soft);
+            outline: none;
+        }
+        input[type="radio"], input[type="checkbox"] {
+            accent-color: var(--secondary);
+        }
+        .due-date-field {
+            display: flex;
+            align-items: end;
+            gap: 0.5rem;
+        }
+        .due-date-field input {
+            flex: 1;
+        }
+        .due-date-field button {
+            flex: 0 0 auto;
+            margin: 0.25rem 0 0;
+            white-space: nowrap;
+        }
+        .due-date-field button:disabled {
+            background: #536180;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .form-help {
+            min-height: 1.5rem;
+            margin: 0.35rem 0 0;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+        textarea {
+            min-height: 6rem;
+            resize: vertical;
+        }
+        button, .button {
+            display: inline-block;
+            margin: 0.75rem 0.5rem 0 0;
+            padding: 0.5rem 0.75rem;
+            border: 0;
+            border-radius: 8px;
+            background: var(--secondary);
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            font: inherit;
+            touch-action: manipulation;
+            font-weight: 600;
+            transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
+            box-shadow: 0 6px 18px rgba(8, 145, 178, 0.2);
+        }
+        button:hover, .button:hover {
+            filter: brightness(1.05);
+            background: var(--secondary-strong);
+            box-shadow: 0 8px 22px rgba(8, 145, 178, 0.28);
+            transform: translateY(-1px);
+        }
+        button:focus-visible, .button:focus-visible {
+            outline: 3px solid var(--secondary-soft);
+            outline-offset: 2px;
+        }
+        .danger {
+            background: #703744;
+            box-shadow: 0 6px 18px rgba(199, 77, 93, 0.25);
+        }
+        .danger:hover {
+            filter: brightness(1.05);
+        }
+        .error {
+            color: #ff9ca7;
+            font-weight: 600;
+        }
+        .empty {
+            color: var(--muted);
+        }
+        .current-class {
+            display: inline-block;
+            margin: 0.35rem 0 1rem;
+            padding: 0.35rem 0.7rem;
+            border: 1px solid var(--panel-border);
+            border-radius: 999px;
+            background: rgba(21, 31, 52, 0.9);
+            color: var(--muted);
+            font-size: 1rem;
+        }
+        .current-class strong {
+            color: #8fd1e5;
+            font-size: 1.1rem;
+        }
+        .dashboard-tabs {
+            display: inline-flex;
+            margin: 0 0 1.5rem;
+            padding: 0.25rem;
+            border: 1px solid var(--panel-border);
+            border-radius: 999px;
+            background: rgba(15, 22, 38, 0.82);
+            gap: 0.2rem;
+            box-shadow: 0 6px 20px rgba(8, 12, 22, 0.2);
+        }
+        .dashboard-tab {
+            display: inline-block;
+            padding: 0.45rem 1rem;
+            border-radius: 999px;
+            color: var(--muted);
+            font-weight: 600;
+            text-decoration: none;
+            transition: background-color 120ms ease, color 120ms ease,
+                box-shadow 120ms ease;
+        }
+        .dashboard-tab:hover,
+        .dashboard-tab:focus-visible {
+            color: var(--text);
+            background: var(--secondary-soft);
+            outline: none;
+        }
+        .dashboard-tab.active {
+            color: var(--text);
+            background: var(--primary);
+            box-shadow: inset 0 0 0 1px rgba(8, 145, 178, 0.55);
+        }
+        @media (max-width: 500px) {
+            .dashboard-tabs {
+                display: flex;
+            }
+            .dashboard-tab {
+                flex: 1;
+                text-align: center;
+            }
+        }
+        .calendar-weekdays, .calendar-week {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+        }
+        .calendar-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .calendar-heading h3 {
+            margin: 0;
+            flex: 1 1 12rem;
+            text-align: center;
+            color: var(--text);
+        }
+        .calendar-scope {
+            margin: 0.35rem 0 0.75rem;
+            color: var(--muted);
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        .calendar-settings {
+            margin-top: 1rem;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 14px;
+            padding: 1rem;
+            box-shadow: 0 8px 24px rgba(8, 12, 22, 0.2);
+        }
+        .calendar-settings summary {
+            display: inline-block;
+            list-style: none;
+        }
+        .calendar-settings summary::-webkit-details-marker {
+            display: none;
+        }
+        .rotation-help {
+            margin-top: 1rem;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+        .rotation-help summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .calendar-weekdays {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            border-top: 1px solid var(--panel-border);
+            border-left: 1px solid var(--panel-border);
+        }
+        .calendar-weeks {
+            max-height: none;
+            overflow: visible;
+        }
+        .calendar-week {
+            min-height: 200vh;
+            min-width: 0;
+            margin-top: 0.5rem;
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            overflow: hidden;
+            background: var(--panel-soft);
+        }
+        .calendar-weekday {
+            padding: 0.4rem;
+            border-right: 1px solid var(--panel-border);
+            border-bottom: 1px solid var(--panel-border);
+            background: var(--panel-soft);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: center;
+            color: var(--text);
+        }
+        .calendar-day {
+            position: relative;
+            height: 200vh;
+            min-width: 0;
+            overflow: visible;
+            background: rgba(17, 23, 36, 0.9);
+            border-right: 1px solid var(--panel-border);
+        }
+        .calendar-day:last-child {
+            border-right: 0;
+        }
+        .calendar-day-timeline {
+            position: relative;
+            height: calc(200vh - 1.8rem);
+            min-width: 0;
+            background: repeating-linear-gradient(
+                to bottom,
+                transparent 0,
+                transparent calc(6.25% - 1px),
+                rgba(168, 183, 216, 0.12) 6.25%
+            );
+        }
+        .calendar-day.outside-month {
+            background: rgba(17, 23, 36, 0.7);
+            color: var(--muted);
+        }
+        .calendar-day.today {
+            background: #10263a;
+        }
+        .calendar-event {
+            box-sizing: border-box;
+            position: absolute;
+            padding: 0.2rem 0.3rem;
+            border-radius: 3px;
+            border: 1px solid rgba(224, 240, 245, 0.16);
+            color: #e5edf3;
+            font-size: 0.75rem;
+            overflow-wrap: anywhere;
+            overflow: hidden;
+            cursor: pointer;
+            z-index: 2;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+        .calendar-event[open] {
+            height: auto !important;
+            min-height: 4rem;
+            z-index: 10;
+            overflow: visible;
+        }
+        .calendar-event summary {
+            cursor: pointer;
+            list-style: none;
+        }
+        .calendar-event summary::-webkit-details-marker {
+            display: none;
+        }
+        .calendar-event summary small {
+            display: block;
+            white-space: nowrap;
+        }
+        .calendar-event-location {
+            display: block;
+            margin-top: 0.15rem;
+            font-size: 1rem;
+            font-weight: 700;
+            white-space: normal;
+        }
+        .calendar-event-details {
+            margin-top: 0.25rem;
+            padding-top: 0.25rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.55);
+            font-size: 0.7rem;
+        }
+        .calendar-event-details p {
+            margin: 0.2rem 0;
+        }
+        .calendar-day-number {
+            position: relative;
+            height: 1.8rem;
+            box-sizing: border-box;
+            padding: 0.35rem;
+            background: rgba(17, 23, 36, 0.9);
+            z-index: 20;
+            color: var(--text);
+            border: 1px solid var(--panel-border);
+            border-radius: 0;
+        }
+        .current-time-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--success);
+            z-index: 15;
+            pointer-events: none;
+        }
+        .current-time-line::before {
+            position: absolute;
+            top: -0.25rem;
+            left: -0.25rem;
+            width: 0.55rem;
+            height: 0.55rem;
+            border-radius: 50%;
+            background: var(--success);
+            content: "";
+        }
+        .calendar-event small {
+            display: block;
+        }
+        @media (max-width: 600px) {
+            main, form, .calendar-settings {
+                padding: 0.75rem;
+            }
+            .current-class {
+                font-size: 0.9rem;
+            }
+            .dashboard-tabs {
+                width: 100%;
+            }
+            .calendar-heading {
+                gap: 0.5rem;
+            }
+            .calendar-heading .button {
+                flex: 1 1 8rem;
+                margin-right: 0;
+                text-align: center;
+            }
+            .calendar-heading h3 {
+                order: -1;
+                flex-basis: 100%;
+            }
+            .calendar-day {
+                font-size: 0.75rem;
+            }
+            .calendar-weekday {
+                font-size: 0.65rem;
+            }
+            .due-today-item {
+                align-items: flex-start;
+            }
+            .due-today-item button {
+                flex-shrink: 0;
+            }
+        }
+
+        /* Shared visual polish; calendar positioning remains unchanged. */
+        html {
+            min-height: 100%;
+            background: var(--bg);
+        }
+        body {
+            padding-top: clamp(1.5rem, 4vw, 3.5rem);
+            padding-bottom: 3rem;
+            background: var(--bg);
+            -webkit-font-smoothing: antialiased;
+        }
+        header {
+            position: relative;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(17rem, 1fr) 15rem;
+            gap: 1.5rem;
+            align-items: start;
+            margin-bottom: 1.5rem;
+            padding-left: clamp(1rem, 3vw, 1.75rem);
+        }
+        .header-school { min-width: 0; }
+        .f1-card {
+            min-width: 0;
+            padding: 1rem 1.15rem;
+            border: 1px solid var(--panel-border);
+            border-top: 3px solid #f26c7a;
+            border-radius: 14px;
+            background: var(--panel);
+            font-size: 0.8rem;
+        }
+        .f1-card h2 { margin: 0; font-size: 1rem; }
+        .f1-card h3 { margin: 0.7rem 0 0.3rem; font-size: 0.8rem; }
+        .f1-card p { margin: 0.4rem 0; }
+        .f1-card summary { cursor: pointer; padding: 0.5rem 0; font-weight: 600; }
+        .f1-card details { border-top: 1px solid var(--panel-border); margin-top: 0.5rem; }
+        .f1-card details[open] > div { max-height: 17rem; overflow-y: auto; }
+        .f1-card table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+        .f1-card td { padding: 0.3rem 0; }
+        .f1-card td:last-child { text-align: right; white-space: nowrap; }
+        .f1-card ul { padding-left: 1rem; margin: 0.4rem 0; }
+        .f1-card li { margin-bottom: 0.65rem; }
+        .f1-card a { color: #8fd1e5; }
+        .f1-note { color: var(--muted); font-size: 0.7rem; }
+        .weather-card {
+            width: 15rem;
+            padding: 1rem 1.15rem;
+            border: 1px solid var(--panel-border);
+            border-radius: 14px;
+            background: var(--panel);
+        }
+        .weather-heading {
+            margin: 0 0 0.4rem;
+            color: var(--muted);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .weather-temperature {
+            font-size: 1.75rem;
+            font-weight: 650;
+            letter-spacing: -0.04em;
+        }
+        .weather-details, .weather-status {
+            margin: 0.3rem 0;
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+        .weather-source {
+            color: var(--muted);
+            font-size: 0.7rem;
+        }
+        @media (max-width: 1000px) {
+            header {
+                grid-template-columns: minmax(0, 1fr) 15rem;
+            }
+            .f1-card {
+                grid-row: 2;
+                grid-column: 1 / -1;
+            }
+        }
+        @media (max-width: 600px) {
+            header {
+                grid-template-columns: minmax(0, 1fr);
+                padding-right: 1rem;
+            }
+            .f1-card {
+                grid-row: auto;
+                grid-column: auto;
+            }
+            .weather-card {
+                width: 100%;
+            }
+        }
+        .dashboard-eyebrow {
+            margin: 0 0 0.5rem;
+            color: var(--muted);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+        header h1 {
+            font-weight: 650;
+            line-height: 1.2;
+        }
+        .current-class {
+            margin-top: 0.85rem;
+            margin-bottom: 1.25rem;
+            background: var(--panel);
+            font-size: 0.9rem;
+        }
+        .current-class strong {
+            font-size: inherit;
+        }
+        .dashboard-tabs {
+            display: flex;
+            width: fit-content;
+            margin-bottom: 0;
+            border-radius: 12px;
+            box-shadow: none;
+            background: var(--bg-alt);
+        }
+        .dashboard-tab {
+            border-radius: 9px;
+            padding: 0.55rem 1.35rem;
+            font-size: 0.9rem;
+        }
+        .dashboard-tab.active {
+            background: var(--panel-strong);
+            box-shadow: inset 0 0 0 1px var(--panel-border);
+        }
+        main {
+            padding: clamp(1rem, 3vw, 1.75rem);
+            border-radius: 18px;
+            box-shadow: none;
+        }
+        .section-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .section-heading h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            letter-spacing: -0.03em;
+        }
+        .section-heading .button {
+            margin: 0;
+            white-space: nowrap;
+        }
+        main > form {
+            padding: 0;
+            border: 0;
+            background: transparent;
+        }
+        main > form > label:first-child {
+            margin-top: 0;
+        }
+        input, textarea {
+            background: var(--bg-alt);
+        }
+        input[type="radio"], input[type="checkbox"] {
+            width: auto;
+            margin-right: 0.4rem;
+        }
+        button, .button {
+            font-size: 0.9rem;
+            box-shadow: none;
+            padding: 0.6rem 0.9rem;
+        }
+        button:hover, .button:hover {
+            box-shadow: none;
+        }
+        .homework-card {
+            padding: 1.25rem;
+            background: var(--bg-alt);
+            border-radius: 12px;
+            box-shadow: none;
+        }
+        .homework-card:hover {
+            border-color: #43556b;
+            box-shadow: none;
+        }
+        .homework-course {
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+        }
+        .homework-title {
+            margin-top: 0.35rem;
+            font-weight: 650;
+        }
+        .homework-description {
+            white-space: pre-wrap;
+        }
+        .homework-due {
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+        }
+        .homework-actions .button {
+            background: var(--panel-strong);
+            border: 1px solid var(--panel-border);
+        }
+        .danger {
+            background: #703744;
+            color: #ffe3e8;
+            box-shadow: none;
+        }
+        .danger:hover {
+            background: #874252;
+        }
+        .due-today {
+            background: rgba(242, 108, 122, 0.07);
+            box-shadow: none;
+        }
+        .due-today-item form {
+            background: transparent;
+            padding: 0;
+            border: 0;
+        }
+        .due-today-item span {
+            display: block;
+            font-size: 0.85rem;
+        }
+        .calendar-heading {
+            margin-top: 1rem;
+            margin-bottom: 0.75rem;
+        }
+        .calendar-heading .button {
+            background: var(--panel-strong);
+            border: 1px solid var(--panel-border);
+        }
+        .calendar-weekday {
+            padding-block: 0.7rem;
+            color: var(--muted);
+        }
+        .calendar-event {
+            border-radius: 6px;
+            box-shadow: none;
+        }
+        .calendar-event-location {
+            font-size: 0.8rem;
+        }
+        .calendar-settings {
+            box-shadow: none;
+        }
+        .empty {
+            padding: 1.5rem 0;
+            text-align: center;
+        }
+        a:focus-visible, button:focus-visible, summary:focus-visible {
+            outline: 2px solid #8fd1e5;
+            outline-offset: 4px;
+        }
+        @media (max-width: 600px) {
+            .dashboard-tabs {
+                width: 100%;
+            }
+            .dashboard-tab {
+                flex: 1;
+                text-align: center;
+            }
+            .homework-card {
+                padding: 1rem;
+            }
+            .section-heading {
+                gap: 0.5rem;
+            }
+            .section-heading h2 {
+                font-size: 1.3rem;
+            }
+            .due-date-field {
+                flex-wrap: wrap;
+            }
+            .due-date-field input {
+                min-width: 10rem;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                transition: none !important;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='header.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='calendar.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='theme.css') }}">
+</head>
+<body>
+    <svg class="graphic-definitions" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+        <symbol id="weather-sun" viewBox="0 0 120 100">
+            <g stroke="#f4ce78" stroke-width="4" stroke-linecap="round">
+                <path d="M60 6v9m0 70v9M16 50h9m70 0h9M29 19l7 7m48 48 7 7M29 81l7-7m48-48 7-7"/>
+                <circle cx="60" cy="50" r="25" fill="#f4ce78"/>
+            </g>
+        </symbol>
+        <symbol id="weather-cloud" viewBox="0 0 120 100">
+            <circle cx="83" cy="30" r="19" fill="#f4ce78"/>
+            <path d="M25 76a19 19 0 0 1-2-38 27 27 0 0 1 51-9 24 24 0 1 1 19 47Z" fill="#c4d9e9"/>
+        </symbol>
+        <symbol id="weather-rain" viewBox="0 0 120 100">
+            <path d="M25 62a18 18 0 0 1-2-36 26 26 0 0 1 49-8 23 23 0 1 1 20 44Z" fill="#a7bfd5"/>
+            <path d="m35 74-5 13m30-13-5 13m30-13-5 13" stroke="#73c9ef" stroke-width="5" stroke-linecap="round"/>
+        </symbol>
+        <symbol id="weather-snow" viewBox="0 0 120 100">
+            <path d="M25 62a18 18 0 0 1-2-36 26 26 0 0 1 49-8 23 23 0 1 1 20 44Z" fill="#c4d9e9"/>
+            <g fill="#dff3ff"><circle cx="32" cy="80" r="4"/><circle cx="60" cy="89" r="4"/><circle cx="88" cy="80" r="4"/></g>
+        </symbol>
+        <symbol id="weather-storm" viewBox="0 0 120 100">
+            <path d="M25 62a18 18 0 0 1-2-36 26 26 0 0 1 49-8 23 23 0 1 1 20 44Z" fill="#a7bfd5"/>
+            <path d="m61 54-15 24h14l-5 20 25-30H65l9-14Z" fill="#f4ce78"/>
+        </symbol>
+    </svg>
+    <header>
+        <div class="header-school">
+        <p class="dashboard-eyebrow">School dashboard</p>
+        <p class="header-date" id="header-date"></p>
+        <h1><span class="header-greeting">{{ greeting }},</span><span class="header-name">Leon</span></h1>
+        <p class="current-class" id="current-class">
+            {% if current_class %}
+                Current class: <strong id="current-class-name">{{ current_class['name'] }}</strong>
+                {% if current_class['location'] %}
+                    <span id="current-class-location"> · {{ current_class['location'] }}</span>
+                {% else %}
+                    <span id="current-class-location"></span>
+                {% endif %}
+            {% else %}
+                {% if next_class %}
+                    Next class: <strong id="next-class-time">{{ next_class['start_time'] }}</strong>
+                    <strong id="next-class-name">{{ next_class['name'] }}</strong>
+                    {% if next_class['location'] %}
+                        <span id="next-class-location"> · {{ next_class['location'] }}</span>
+                    {% endif %}
+                {% else %}
+                    No class right now
+                {% endif %}
+            {% endif %}
+        </p>
+        <nav class="dashboard-tabs" aria-label="Dashboard sections">
+            <a
+                class="dashboard-tab{% if request.path in ['/', '/homework'] %} active{% endif %}"
+                href="{{ url_for('homework_list') }}"
+                data-tab-link
+                {% if request.path in ['/', '/homework'] %}aria-current="page"{% endif %}
+            >Homework</a>
+            <a
+                class="dashboard-tab{% if request.path == '/calendar' %} active{% endif %}"
+                href="{{ url_for('calendar') }}"
+                data-tab-link
+                {% if request.path == '/calendar' %}aria-current="page"{% endif %}
+            >Calendar</a>
+        </nav>
+        </div>
+        <aside class="f1-card" aria-label="Formula 1 menu">
+            <div class="f1-banner">
+                <h2>Formula 1</h2>
+                <span id="f1-season" class="f1-season"></span>
+            </div>
+            <div class="f1-content">
+            <div class="f1-race-section">
+                <div id="f1-race"><p class="f1-note">Loading next race…</p></div>
+                <a id="f1-track-link" class="f1-track-link" hidden href="https://github.com/MasterPlay007/F1-Track-Layouts-SVG" target="_blank" rel="noopener noreferrer" title="Circuit layouts by MasterPlay007 (CC0)">
+                    <img id="f1-track" class="f1-track" alt="" referrerpolicy="no-referrer">
+                </a>
+            </div>
+            <details class="f1-dropdown">
+                <summary aria-controls="f1-standings">Championship leaders</summary>
+                <div id="f1-standings">Loading standings…</div>
+            </details>
+            <details class="f1-dropdown">
+                <summary aria-controls="f1-news">Latest stories</summary>
+                <div id="f1-news">Loading stories…</div>
+            </details>
+            </div>
+            <div class="f1-footer">
+                <p id="f1-status" class="f1-note" role="status">Loading F1 updates…</p>
+                <p class="f1-note">5-minute refresh · <a href="https://github.com/jolpica/jolpica-f1" target="_blank" rel="noopener noreferrer">Jolpica</a> / <a href="https://www.bbc.com/sport/formula1" target="_blank" rel="noopener noreferrer">BBC Sport</a></p>
+            </div>
+        </aside>
+        <aside class="weather-card" aria-label="Toronto weather">
+            <p class="weather-heading">Toronto weather</p>
+            <div class="weather-visual" aria-hidden="true">
+                <svg class="weather-icon"><use id="weather-icon-use" href="#weather-cloud"/></svg>
+            </div>
+            <div id="weather-current" hidden>
+                <span id="weather-temperature" class="weather-temperature"></span>
+                <span id="weather-condition"></span>
+                <div class="weather-metrics">
+                    <div class="weather-metric"><span>Feels like</span><strong id="weather-feels"></strong></div>
+                    <div class="weather-metric"><span>Wind</span><strong id="weather-wind"></strong></div>
+                </div>
+            </div>
+            <p id="weather-status" class="weather-status" role="status">Loading weather…</p>
+            <a class="weather-source" href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Weather by Open-Meteo</a>
+        </aside>
+    </header>
+    <div id="page-content">
+        {% block content %}{% endblock %}
+    </div>
+    <script>
+        document.getElementById('header-date').textContent = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'America/Toronto', weekday: 'long', month: 'long', day: 'numeric'
+        }).format(new Date());
+        (() => {
+            const make = (tag, text, className) => {
+                const node = document.createElement(tag);
+                node.textContent = text;
+                if (className) node.className = className;
+                return node;
+            };
+            const stamp = (section) => {
+                if (!section.updated) return 'Unavailable · retrying automatically';
+                const time = new Intl.DateTimeFormat('en-CA', {
+                    timeZone: 'America/Toronto', month: 'short', day: 'numeric',
+                    hour: 'numeric', minute: '2-digit'
+                }).format(new Date(section.updated));
+                return `${section.stale ? 'Refresh failed · Last updated' : 'Updated'} ${time} Toronto`;
+            };
+            let refreshing = false;
+            const trackImage = document.getElementById('f1-track');
+            const trackLink = document.getElementById('f1-track-link');
+            trackImage.addEventListener('load', () => { trackLink.hidden = false; });
+            trackImage.addEventListener('error', () => { trackLink.hidden = true; });
+            async function refreshF1() {
+                if (refreshing) return;
+                refreshing = true;
+                try {
+                    const response = await fetch('{{ url_for("f1_api") }}', {
+                        cache: 'no-store', signal: AbortSignal.timeout(25000)
+                    });
+                    if (!response.ok) throw new Error('F1 unavailable');
+                    const data = await response.json();
+                    const sections = data.sections;
+                    document.getElementById('f1-season').textContent = data.season;
+                    const race = document.getElementById('f1-race');
+                    race.replaceChildren(make('h3', 'Next Grand Prix'));
+                    if (sections.race.data) {
+                        const next = sections.race.data;
+                        const circuitId = next.circuit_id === 'las_vegas' ? 'vegas' : next.circuit_id;
+                        const availableLayouts = new Set(['albert_park', 'americas', 'bahrain', 'baku',
+                            'catalunya', 'hungaroring', 'interlagos', 'jeddah', 'losail', 'marina_bay',
+                            'miami', 'monaco', 'monza', 'red_bull_ring', 'rodriguez', 'shanghai',
+                            'silverstone', 'spa', 'suzuka', 'vegas', 'villeneuve', 'yas_marina', 'zandvoort']);
+                        if (availableLayouts.has(circuitId)) {
+                            const source = `https://raw.githubusercontent.com/MasterPlay007/F1-Track-Layouts-SVG/main/${circuitId}.svg`;
+                            trackImage.alt = `${next.circuit} layout`;
+                            if (trackImage.getAttribute('src') !== source) {
+                                trackLink.hidden = true;
+                                trackImage.src = source;
+                            }
+                        } else {
+                            trackLink.hidden = true;
+                            trackImage.removeAttribute('src');
+                        }
+                        race.append(make('strong', next.name), make('p', next.location, 'f1-location'),
+                            make('p', next.circuit, 'f1-track-name'));
+                        const times = make('div', '', 'race-times');
+                        for (const [label, time] of [['At the track', next.track_time], ['In Toronto', next.toronto_time]]) {
+                            const tile = make('div', '', 'race-time');
+                            tile.append(make('span', label), make('strong', time));
+                            times.append(tile);
+                        }
+                        race.append(times);
+                    } else {
+                        trackLink.hidden = true;
+                        trackImage.removeAttribute('src');
+                        race.append(make('p', sections.race.updated
+                            ? 'No upcoming race published for this season.' : 'Race schedule unavailable.'));
+                    }
+                    race.append(make('p', stamp(sections.race), 'f1-note'));
+                    const standings = document.getElementById('f1-standings');
+                    standings.replaceChildren();
+                    for (const [key, title] of [['drivers', 'Drivers'], ['constructors', 'Teams']]) {
+                        const section = sections[key];
+                        standings.append(make('h3', title));
+                        if (section.data?.leaders.length) {
+                            const table = document.createElement('table');
+                            table.setAttribute('aria-label', `${title} championship leaders`);
+                            for (const leader of section.data.leaders) {
+                                const row = document.createElement('tr');
+                                row.append(make('td', `${leader.position}. ${leader.name}`),
+                                    make('td', `${leader.points} pts`));
+                                table.append(row);
+                            }
+                            standings.append(table, make('p', `After round ${section.data.round}`, 'f1-note'));
+                        } else {
+                            standings.append(make('p', section.updated
+                                ? 'Standings not published yet.' : 'Standings unavailable.'));
+                        }
+                        standings.append(make('p', stamp(section), 'f1-note'));
+                    }
+                    const news = document.getElementById('f1-news');
+                    news.replaceChildren();
+                    if (sections.news.data?.length) {
+                        const list = document.createElement('ul');
+                        for (const story of sections.news.data) {
+                            const url = new URL(story.url);
+                            if (url.protocol !== 'https:') continue;
+                            const item = document.createElement('li');
+                            const link = make('a', story.title);
+                            link.href = url.href;
+                            link.target = '_blank';
+                            link.rel = 'noopener noreferrer';
+                            item.append(link);
+                            const published = new Date(story.published);
+                            if (!Number.isNaN(published.getTime())) {
+                                item.append(make('p', published.toLocaleDateString('en-CA', {
+                                    timeZone: 'America/Toronto', month: 'short', day: 'numeric'
+                                }), 'f1-note'));
+                            }
+                            list.append(item);
+                        }
+                        news.append(list);
+                    } else news.append(make('p', 'No stories available right now.'));
+                    news.append(make('p', stamp(sections.news), 'f1-note'));
+                    document.getElementById('f1-status').textContent =
+                        Object.values(sections).some(section => section.stale)
+                            ? 'Some feeds unavailable · retrying automatically' : 'Latest available updates';
+                } catch (error) {
+                    document.getElementById('f1-status').textContent =
+                        'Refresh unavailable · retrying automatically';
+                    for (const id of ['f1-standings', 'f1-news']) {
+                        const node = document.getElementById(id);
+                        if (node.textContent.startsWith('Loading')) node.textContent = 'Temporarily unavailable.';
+                    }
+                } finally { refreshing = false; }
+            }
+            refreshF1();
+            window.setInterval(refreshF1, 5 * 60 * 1000);
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) refreshF1();
+            });
+        })();
+        const weatherCodes = {
+            0: "Clear", 1: "Mostly clear", 2: "Partly cloudy", 3: "Overcast",
+            45: "Fog", 48: "Freezing fog", 51: "Light drizzle", 53: "Drizzle",
+            55: "Heavy drizzle", 56: "Freezing drizzle", 57: "Freezing drizzle",
+            61: "Light rain", 63: "Rain", 65: "Heavy rain", 66: "Freezing rain",
+            67: "Freezing rain", 71: "Light snow", 73: "Snow", 75: "Heavy snow",
+            77: "Snow grains", 80: "Light showers", 81: "Showers", 82: "Heavy showers",
+            85: "Snow showers", 86: "Heavy snow showers", 95: "Thunderstorm",
+            96: "Thunderstorm with hail", 99: "Thunderstorm with hail"
+        };
+        let lastWeatherTime = null;
+        async function updateWeather() {
+            const status = document.getElementById("weather-status");
+            try {
+                const response = await fetch(
+                    "https://api.open-meteo.com/v1/forecast?latitude=43.6532&longitude=-79.3832"
+                    + "&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m"
+                    + "&timezone=America%2FToronto&temperature_unit=celsius&wind_speed_unit=kmh",
+                    { signal: AbortSignal.timeout(10000) }
+                );
+                if (!response.ok) throw new Error("Weather unavailable");
+                const data = await response.json();
+                const current = data.current;
+                if (!current || !Number.isFinite(current.temperature_2m)
+                    || !Number.isFinite(current.apparent_temperature)
+                    || !Number.isFinite(current.wind_speed_10m)
+                    || typeof current.time !== "string") {
+                    throw new Error("Weather unavailable");
+                }
+                document.getElementById("weather-temperature").textContent =
+                    `${Math.round(current.temperature_2m)}°C`;
+                document.getElementById("weather-condition").textContent =
+                    weatherCodes[current.weather_code] || "Current conditions";
+                document.getElementById("weather-feels").textContent = `${Math.round(current.apparent_temperature)}°C`;
+                document.getElementById("weather-wind").textContent = `${Math.round(current.wind_speed_10m)} km/h`;
+                const code = current.weather_code;
+                const icon = code >= 95 ? 'storm'
+                    : ([71, 73, 75, 77, 85, 86].includes(code) ? 'snow'
+                    : (code >= 51 ? 'rain' : (code <= 1 ? 'sun' : 'cloud')));
+                document.getElementById('weather-icon-use').setAttribute('href', `#weather-${icon}`);
+                lastWeatherTime = current.time.replace("T", " ");
+                document.getElementById("weather-current").hidden = false;
+                status.textContent = `Updated ${lastWeatherTime} · Toronto time`;
+            } catch (error) {
+                status.textContent = lastWeatherTime
+                    ? `Refresh unavailable · Last update ${lastWeatherTime} (Toronto)`
+                    : "Weather unavailable. Retrying in 10 minutes.";
+            }
+        }
+        updateWeather();
+        window.setInterval(updateWeather, 10 * 60 * 1000);
+
+        async function updateCurrentClass() {
+            const response = await fetch("{{ url_for('current_class_api') }}");
+            if (!response.ok) {
+                return;
+            }
+            const classData = await response.json();
+            const header = document.getElementById("current-class");
+            if (!header) {
+                return;
+            }
+            if (!classData.current_class && !classData.next_class) {
+                header.textContent = "No class right now";
+                return;
+            }
+            if (!classData.current_class) {
+                header.replaceChildren();
+                header.append("Next class: ");
+                const time = document.createElement("strong");
+                time.textContent = classData.next_class.start_time;
+                header.append(time);
+                header.append(" ");
+                const name = document.createElement("strong");
+                name.textContent = classData.next_class.name;
+                header.append(name);
+                if (classData.next_class.location) {
+                    const location = document.createElement("span");
+                    location.textContent = ` · ${classData.next_class.location}`;
+                    header.append(location);
+                }
+                return;
+            }
+            header.replaceChildren();
+            header.append("Current class: ");
+            const name = document.createElement("strong");
+            name.textContent = classData.current_class.name;
+            header.append(name);
+            if (classData.current_class.location) {
+                const location = document.createElement("span");
+                location.textContent = ` · ${classData.current_class.location}`;
+                header.append(location);
+            }
+        }
+        window.setInterval(updateCurrentClass, 60 * 1000);
+
+        // Cache and swap dashboard pages without a full browser navigation.
+        const tabResponses = new Map();
+        const pageRequests = new Map();
+        const currentPageContent = document.getElementById("page-content");
+
+        async function fetchTab(url) {
+            if (!tabResponses.has(url)) {
+                if (!pageRequests.has(url)) {
+                    pageRequests.set(url, fetch(url, {
+                        credentials: "same-origin",
+                        headers: { "X-Dashboard-Tab": "true" }
+                    })
+                        .then((response) => {
+                            if (!response.ok) {
+                                throw new Error(`Tab request failed: ${response.status}`);
+                            }
+                            return response.text();
+                        })
+                        .then((html) => {
+                            tabResponses.set(url, html);
+                            pageRequests.delete(url);
+                            return html;
+                        })
+                        .catch((error) => {
+                            pageRequests.delete(url);
+                            throw error;
+                        }));
+                }
+                return pageRequests.get(url);
+            }
+            return tabResponses.get(url);
+        }
+        window.prefetchDashboardPage = (url) => fetchTab(url).catch(() => {});
+
+        function runPageScripts(container) {
+            container.querySelectorAll("script").forEach((oldScript) => {
+                const newScript = document.createElement("script");
+                Array.from(oldScript.attributes).forEach((attribute) => {
+                    newScript.setAttribute(attribute.name, attribute.value);
+                });
+                newScript.textContent = oldScript.textContent;
+                oldScript.replaceWith(newScript);
+            });
+        }
+
+        let dashboardSwitchInProgress = false;
+        async function switchDashboardPage(url, addHistory = true) {
+            if (dashboardSwitchInProgress) {
+                return;
+            }
+            dashboardSwitchInProgress = true;
+            try {
+                const html = await fetchTab(url);
+                const parsedPage = new DOMParser().parseFromString(html, "text/html");
+                const nextContent = parsedPage.getElementById("page-content");
+                if (!nextContent || !currentPageContent) {
+                    window.location.href = url;
+                    return;
+                }
+
+                currentPageContent.innerHTML = nextContent.innerHTML;
+                document.title = parsedPage.title;
+                document.querySelectorAll("[data-tab-link]").forEach((link) => {
+                    const isActive = link.href === url;
+                    link.classList.toggle("active", isActive);
+                    if (isActive) {
+                        link.setAttribute("aria-current", "page");
+                    } else {
+                        link.removeAttribute("aria-current");
+                    }
+                });
+                if (addHistory) {
+                    window.history.pushState({}, "", url);
+                }
+                window.scrollTo(0, 0);
+                runPageScripts(currentPageContent);
+                bindCalendarLinks();
+            } catch (error) {
+                window.location.href = url;
+            } finally {
+                dashboardSwitchInProgress = false;
+            }
+        }
+
+        document.querySelectorAll("[data-tab-link]").forEach((tab) => {
+            tab.addEventListener("mouseenter", () => fetchTab(tab.href).catch(() => {}));
+            tab.addEventListener("focus", () => fetchTab(tab.href).catch(() => {}));
+            tab.addEventListener("click", (event) => {
+                event.preventDefault();
+                switchDashboardPage(tab.href);
+            });
+        });
+        function bindCalendarLinks() {
+            document.querySelectorAll("[data-calendar-link]").forEach((link) => {
+                if (link.dataset.bound === "true") {
+                    return;
+                }
+                link.dataset.bound = "true";
+                const prefetchCalendarPage = () => fetchTab(link.href).catch(() => {});
+                link.addEventListener("mouseenter", prefetchCalendarPage);
+                link.addEventListener("focus", prefetchCalendarPage);
+                link.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    switchDashboardPage(link.href);
+                });
+            });
+        }
+        bindCalendarLinks();
+
+        window.addEventListener("popstate", () => {
+            const tab = Array.from(document.querySelectorAll("[data-tab-link]"))
+                .find((link) => link.pathname === window.location.pathname);
+            if (tab) {
+                switchDashboardPage(window.location.href, false);
+            } else {
+                window.location.reload();
+            }
+        });
+    </script>
+</body>
+</html>

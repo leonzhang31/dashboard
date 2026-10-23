@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}Calendar | School Dashboard{% endblock %}
+
+{% block content %}
+<main class="calendar-page">
+    <div class="calendar-page-top">
+        <h2 id="calendar-title">Calendar</h2>
+        {% if settings['last_synced'] %}
+            <p class="calendar-sync">Last synced {{ settings['last_synced'] }}</p>
+        {% endif %}
+    </div>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+
+    {% if settings['calendar_source'] == 'none' %}
+    <p>Use a Google Calendar private iCal URL to refresh automatically, or upload an .ics file for a manual import.</p>
+    <form method="post" enctype="multipart/form-data">
+        <label>
+            <input type="radio" name="source" value="url" checked>
+            Google Calendar iCal URL
+        </label>
+        <input name="calendar_url" type="url" placeholder="https://...calendar.ics"
+               value="{{ settings['calendar_url'] if settings['calendar_source'] == 'url' else '' }}">
+
+        <label>
+            <input type="radio" name="source" value="upload">
+            Upload an .ics file
+        </label>
+        <input name="calendar_file" type="file" accept=".ics,text/calendar">
+
+        <button type="submit">Import calendar</button>
+    </form>
+    {% endif %}
+
+    <div class="calendar-heading">
+        <a class="button" data-calendar-link href="{{ url_for('calendar', week=previous_week.isoformat()) }}">Previous week</a>
+        <h3>{{ current_week }}</h3>
+        <a class="button" data-calendar-link href="{{ url_for('calendar', week=next_week.isoformat()) }}">Next week</a>
+    </div>
+    <p class="calendar-scope">
+        Showing {{ scope_start_label }}–{{ scope_end_label }}. Scroll to see the full day;
+        the view opens centered on now.
+    </p>
+    <div class="calendar-weekdays">
+        {% for weekday in ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"] %}
+            <div class="calendar-weekday">{{ weekday }}</div>
+        {% endfor %}
+    </div>
+    <div class="calendar-weeks">
+        <section class="calendar-week">
+            {% for day in week_days %}
+            <div class="calendar-day {% if day == today %}today{% endif %} {% if day.weekday() in [5, 6] %}weekend{% endif %}">
+                <div class="calendar-day-timeline">
+                    <div class="calendar-day-number"><strong>{{ day.day }}</strong></div>
+                    {% if day == today %}
+                    <div class="current-time-line" aria-label="Current time"></div>
+                    {% endif %}
+                    {% for event in events_by_day.get(day.isoformat(), []) %}
+                    <details class="calendar-event{% if event.get('is_homework') %} homework-deadline{% endif %}" style="--event-accent: {{ event['color'] }}; top: calc(1.8rem + {{ event['top_percent'] }}%); height: {{ event['height_percent'] }}%; left: calc({{ event['lane'] }} * (100% / {{ event['lane_count'] }} ) + 0.2rem); width: calc(100% / {{ event['lane_count'] }} - 0.4rem);">
+                        <summary>
+                            <strong>{{ event['title'] }}</strong>
+                            {% if event['location'] %}
+                                <span class="calendar-event-location">{{ event['location'] }}</span>
+                            {% endif %}
+                            <small>{{ event['start_label'] }}{% if event['end_label'] %} - {{ event['end_label'] }}{% endif %}</small>
+                        </summary>
+                        <div class="calendar-event-details">
+                            <p><strong>{{ event['start_label'] }}{% if event['end_label'] %} - {{ event['end_label'] }}{% endif %}</strong> {% if not event.get('is_homework') %}({{ event['duration_label'] }}){% endif %}</p>
+                            {% if event['location'] %}<p><strong>Where:</strong> {{ event['location'] }}</p>{% endif %}
+                            {% if event['description'] %}<p>{{ event['description'] }}</p>{% else %}<p>No description provided.</p>{% endif %}
+                        </div>
+                    </details>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </section>
+    </div>
+    {% if not events_by_day %}
+        <p class="empty">No events are scheduled for this week.</p>
+    {% endif %}
+</main>
+{% if settings['calendar_source'] != 'none' %}
+<section class="calendar-settings">
+    <details>
+        <summary class="button">Change calendar or update manually</summary>
+        <p>
+            {% if settings['calendar_source'] == 'url' %}
+                This calendar refreshes automatically every 15 minutes while this page is open.
+            {% else %}
+                This calendar came from an uploaded .ics file. Upload a newer file to update it.
+            {% endif %}
+        </p>
+        <form method="post" enctype="multipart/form-data">
+            <label>
+                <input type="radio" name="source" value="url" {% if settings['calendar_source'] == 'url' %}checked{% endif %}>
+                Google Calendar iCal URL
+            </label>
+            <input name="calendar_url" type="url" placeholder="https://...calendar.ics"
+                   value="{{ settings['calendar_url'] if settings['calendar_source'] == 'url' else '' }}">
+
+            <label>
+                <input type="radio" name="source" value="upload" {% if settings['calendar_source'] == 'upload' %}checked{% endif %}>
+                Upload an .ics file
+            </label>
+            <input name="calendar_file" type="file" accept=".ics,text/calendar">
+            <button type="submit">Update calendar</button>
+        </form>
+    </details>
+</section>
+{% endif %}
+<section class="rotation-help">
+    <details>
+        <summary>Cycle troubleshooting</summary>
+        <p>
+            The app counts a school day only when Google Calendar has at least
+            two class periods on that weekday.
+        </p>
+        {% if rotation_info['cycle_day'] %}
+            <p>
+                Today is cycle day <strong>{{ rotation_info['cycle_day'] }}</strong>
+                of 9, in the {{ rotation_info['subject'] }} block
+                (18 school days).
+            </p>
+        {% else %}
+            <p>No qualifying school day has been detected yet.</p>
+        {% endif %}
+        <p>Reference: September 11, 2026 starts as Music, cycle day 1.</p>
+        <p>Last calendar sync: {{ settings['last_synced'] or 'Never' }}</p>
+    </details>
+</section>
+<script>
+    (() => {
+        if (window.calendarPageCleanup) {
+            window.calendarPageCleanup();
+        }
+
+        // Center the current time in the full-day timeline.
+        const timeline = document.querySelector(".calendar-day-timeline");
+        if (timeline) {
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            const timelineStart = {{ scope_start_minute }};
+            const timelineEnd = {{ scope_end_minute }};
+            const timePosition = Math.max(
+                0,
+                Math.min(
+                    1,
+                    (currentMinutes - timelineStart) / (timelineEnd - timelineStart)
+                )
+            );
+            const timelineTop = window.scrollY
+                + timeline.getBoundingClientRect().top;
+            window.scrollTo(
+                0,
+                Math.max(
+                    0,
+                    timelineTop + 1.8 * parseFloat(getComputedStyle(document.documentElement).fontSize)
+                        + timePosition * timeline.offsetHeight
+                        - window.innerHeight / 2
+                )
+            );
+        }
+
+        const currentTimeLine = document.querySelector(".current-time-line");
+        function updateCurrentTimeLine() {
+            if (!currentTimeLine) {
+                return;
+            }
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            const timelineStart = {{ scope_start_minute }};
+            const timelineEnd = {{ scope_end_minute }};
+            if (currentMinutes < timelineStart || currentMinutes > timelineEnd) {
+                currentTimeLine.hidden = true;
+                return;
+            }
+            const timePosition = (currentMinutes - timelineStart)
+                / (timelineEnd - timelineStart);
+            currentTimeLine.hidden = false;
+            currentTimeLine.style.top = `calc(1.8rem + ${timePosition * 100}%)`;
+        }
+        updateCurrentTimeLine();
+        const currentTimeInterval = window.setInterval(
+            updateCurrentTimeLine,
+            60 * 1000
+        );
+        document.querySelectorAll("[data-calendar-link]").forEach((link) => {
+            if (window.prefetchDashboardPage) {
+                window.prefetchDashboardPage(link.href);
+            }
+        });
+        window.calendarPageCleanup = () => {
+            window.clearInterval(currentTimeInterval);
+        };
+
+        // Keep only one event expanded at a time.
+        if (window.calendarEventClickCleanup) {
+            window.calendarEventClickCleanup();
+        }
+        const closeOtherCalendarEvents = (event) => {
+            const summary = event.target.closest(".calendar-event summary");
+            if (!summary) {
+                return;
+            }
+            const selectedEvent = summary.closest(".calendar-event");
+            document.querySelectorAll(".calendar-event[open]").forEach((otherEvent) => {
+                if (otherEvent !== selectedEvent) {
+                    otherEvent.open = false;
+                }
+            });
+        };
+        document.addEventListener("click", closeOtherCalendarEvents);
+        window.calendarEventClickCleanup = () => {
+            document.removeEventListener("click", closeOtherCalendarEvents);
+        };
+    })();
+</script>
+{% if settings['calendar_source'] == 'url' and settings['calendar_url'] %}
+<script>
+    // Reload the page every 15 minutes so the saved calendar URL is synced again.
+    if (window.calendarReloadTimeout) {
+        window.clearTimeout(window.calendarReloadTimeout);
+    }
+    window.calendarReloadTimeout = window.setTimeout(
+        () => window.location.reload(),
+        15 * 60 * 1000
+    );
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} | School Dashboard{% endblock %}
+
+{% block content %}
+<main>
+    <h2>{{ page_title }}</h2>
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    <form method="post">
+        <label for="title">Title</label>
+        <input id="title" name="title" required value="{{ homework['title'] if homework else '' }}">
+
+        <label for="course">Course</label>
+        <input id="course" name="course" list="course-options" required
+               value="{{ homework['course'] if homework else '' }}"
+               placeholder="Choose or type a course">
+        <datalist id="course-options">
+            {% for course in courses %}
+                <option value="{{ course }}">
+            {% endfor %}
+        </datalist>
+        <script>
+            const courseInput = document.getElementById("course");
+            const courseOptions = Array.from(
+                document.querySelectorAll("#course-options option")
+            ).map((option) => option.value);
+
+            courseInput.addEventListener("keydown", (event) => {
+                if (event.key !== "Enter") {
+                    return;
+                }
+
+                const searchText = courseInput.value.trim().toLowerCase();
+                const matchingOptions = courseOptions.filter((course) =>
+                    course.toLowerCase().startsWith(searchText)
+                );
+                const optionsToUse = matchingOptions.length
+                    ? matchingOptions
+                    : courseOptions.filter((course) =>
+                          course.toLowerCase().includes(searchText)
+                      );
+
+                if (optionsToUse.length) {
+                    courseInput.value = optionsToUse[0];
+                    event.preventDefault();
+                }
+            });
+        </script>
+
+        <label for="description">Description</label>
+        <textarea id="description" name="description" rows="4">{{ homework['description'] if homework else '' }}</textarea>
+
+        <label for="due_date">Due date</label>
+        <div class="due-date-field">
+            <input id="due_date" name="due_date" type="date" value="{{ homework['due_date'] if homework else '' }}">
+            <button id="next-class-button" type="button">Use next class</button>
+        </div>
+        <label for="due_time">Due time</label>
+        <input id="due_time" name="due_time" type="time" value="{{ homework['due_time'] if homework else '' }}">
+        <p id="next-class-status" class="form-help" role="status" aria-live="polite"></p>
+
+        <button type="submit">{{ button_text }}</button>
+        <a class="button" href="{{ url_for('home') }}">Cancel</a>
+    </form>
+</main>
+<script>
+    (() => {
+        const courseInput = document.getElementById("course");
+        const dueDateInput = document.getElementById("due_date");
+        const dueTimeInput = document.getElementById("due_time");
+        const nextClassButton = document.getElementById("next-class-button");
+        const status = document.getElementById("next-class-status");
+
+        async function findNextClass() {
+            const course = courseInput.value.trim();
+            if (!course || course.toLowerCase() === "other") {
+                status.textContent = course ? "Choose a specific course to find its next class." : "";
+                nextClassButton.disabled = true;
+                return;
+            }
+
+            nextClassButton.disabled = true;
+            status.textContent = "Looking for the next class...";
+            try {
+                const response = await fetch(
+                    "{{ url_for('next_class_api') }}?course=" + encodeURIComponent(course)
+                );
+                if (!response.ok) {
+                    throw new Error("The next class could not be loaded.");
+                }
+                const data = await response.json();
+                if (!data.next_class) {
+                    status.textContent = "No upcoming class was found for this course.";
+                    return;
+                }
+
+                nextClassButton.disabled = false;
+                nextClassButton.dataset.date = data.next_class.date;
+                nextClassButton.dataset.time = data.next_class.time;
+                status.textContent =
+                    `${data.next_class.title} on ${data.next_class.date} at ${data.next_class.start_time}`;
+            } catch (error) {
+                status.textContent = error.message;
+            }
+        }
+
+        nextClassButton.addEventListener("click", () => {
+            if (nextClassButton.dataset.date) {
+                dueDateInput.value = nextClassButton.dataset.date;
+                dueTimeInput.value = nextClassButton.dataset.time;
+            }
+        });
+        courseInput.addEventListener("change", findNextClass);
+        courseInput.addEventListener("blur", findNextClass);
+        findNextClass();
+    })();
+</script>
+{% endblock %}

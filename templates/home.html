@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Homework | School Dashboard{% endblock %}
+
+{% block content %}
+<main>
+    <div class="section-heading">
+        <h2>Homework</h2>
+        <a class="button" href="{{ url_for('add_homework') }}">Add homework</a>
+    </div>
+
+    {% if due_tomorrow %}
+        <section class="due-today" aria-labelledby="due-tomorrow-title">
+            <h3 id="due-tomorrow-title">Due tomorrow</h3>
+            {% for item in due_tomorrow %}
+                <div class="due-today-item">
+                    <div>
+                        <strong>{{ item['title'] }}</strong>
+                        {% if item['course'] %}<span>{{ item['course'] }}</span>{% endif %}
+                    </div>
+                    <form method="post"
+                          action="{{ url_for('delete_homework', homework_id=item['id']) }}"
+                          onsubmit="return confirm('Delete this homework and its calendar reminder?');">
+                        <button class="danger" type="submit">Delete</button>
+                    </form>
+                </div>
+            {% endfor %}
+        </section>
+    {% endif %}
+
+    {% if homework %}
+        {% for item in homework %}
+        <article class="homework-card {% if item['completed'] %}completed{% endif %}">
+            <div class="homework-details">
+                {% if item['course'] %}
+                    <div class="homework-course">{{ item['course'] }}</div>
+                {% endif %}
+                <h2 class="homework-title">{{ item['title'] }}</h2>
+                {% if item['description'] %}
+                    <p class="homework-description">{{ item['description'] }}</p>
+                {% endif %}
+                {% if item['due_date'] %}
+                    <p class="homework-due"><strong>Due:</strong> {{ item['due_date'] }}{% if item['due_time'] %} at {{ item['due_time'] }}{% endif %}</p>
+                {% endif %}
+            </div>
+            <div class="homework-actions">
+                {% if item['completed'] %}
+                    <span class="homework-status">Completed</span>
+                {% else %}
+                    <form method="post" action="{{ url_for('complete_homework', homework_id=item['id']) }}">
+                        <button type="submit">Complete</button>
+                    </form>
+                {% endif %}
+                <a class="button" href="{{ url_for('edit_homework', homework_id=item['id']) }}">Edit</a>
+                <form method="post" action="{{ url_for('delete_homework', homework_id=item['id']) }}">
+                    <button class="danger" type="submit">Delete</button>
+                </form>
+            </div>
+        </article>
+        {% endfor %}
+    {% else %}
+        <p class="empty">No homework yet. Add your first assignment above.</p>
+    {% endif %}
+</main>
+{% endblock %}

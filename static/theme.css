@@ -1,0 +1,112 @@
+/* Neutral charcoal surfaces with coordinated blue, amber, and rose accents. */
+:root {
+    --bg: #17191e;
+    --bg-alt: #1c2027;
+    --primary: #242932;
+    --panel: #242932;
+    --panel-strong: #333c49;
+    --panel-soft: #2c333e;
+    --panel-border: #414a59;
+    --text: #f2eee7;
+    --muted: #b5bdc9;
+    --secondary: #386d83;
+    --secondary-strong: #2f5c70;
+    --secondary-soft: #7cb4cf24;
+    --accent-text: #a5cfe1;
+    --warning-text: #e0b575;
+}
+.header-school { border-top: 3px solid #7cb4cf; }
+.f1-card { border-top: 3px solid #d796a3; }
+.weather-card { border-top: 3px solid #e0b575; }
+.f1-banner { background: var(--panel); }
+.f1-banner h2 { color: var(--text); }
+.weather-heading { color: #e0b575; }
+.header-name { color: #f2eee7; }
+.homework-course, .current-class strong, .f1-card a {
+    color: var(--accent-text);
+}
+.dashboard-tab.active {
+    background: var(--panel-strong);
+    color: var(--text);
+    box-shadow: inset 0 0 0 1px #7cb4cf;
+}
+.homework-card:hover { border-color: #7cb4cf; }
+input, textarea { background: var(--bg-alt); }
+input::placeholder, textarea::placeholder { color: #a3adbc; }
+button, .button { color: var(--text); }
+button:focus-visible, a:focus-visible, summary:focus-visible {
+    outline-color: var(--accent-text);
+}
+.due-today { background: #dc9d8d0d; border-left-color: var(--danger); }
+.due-today h3, .error { color: #ecc0b2; }
+.danger { background: #663d36; color: #f8e4dc; }
+.danger:hover { background: #7a4c42; }
+.homework-status { background: #adc89d1a; color: var(--accent-text); }
+.due-date-field button:disabled { background: #4a5146; color: #d3d8cd; }
+.f1-content { scrollbar-color: #596476 transparent; }
+.f1-card h3 { color: var(--muted); }
+#weather-condition { color: var(--muted); }
+.weather-source { color: var(--muted); }
+.calendar-page, .calendar-settings, .rotation-help {
+    background: var(--panel);
+    border-color: var(--panel-border);
+}
+.calendar-page .calendar-heading,
+.calendar-page .calendar-weekdays,
+.calendar-page .calendar-weekday,
+.calendar-page .calendar-day-number {
+    background: var(--panel-soft);
+    border-color: var(--panel-border);
+    color: var(--muted);
+}
+.calendar-page .calendar-heading h3 { color: var(--text); }
+.calendar-page .calendar-heading .button,
+.calendar-settings > details > summary.button {
+    background: var(--panel-strong);
+    border-color: var(--panel-border);
+}
+.calendar-page .calendar-heading .button:hover { background: #3e4b5d; }
+.calendar-page .calendar-scope { color: var(--muted); }
+.calendar-page .calendar-week, .calendar-page .calendar-day {
+    background: var(--bg-alt);
+    border-color: #343e4b;
+}
+.calendar-page .calendar-day.weekend { background: var(--bg); }
+.calendar-page .calendar-day.today {
+    background: #263443;
+    box-shadow: inset 1px 0 #7cb4cf40, inset -1px 0 #7cb4cf40;
+}
+.calendar-page .today .calendar-day-number {
+    background: #39536a;
+    color: #e6f2fa;
+}
+.calendar-page .calendar-day-timeline {
+    background: repeating-linear-gradient(
+        to bottom, transparent 0,
+        transparent calc(6.25% - 1px), #c4d5ed12 6.25%
+    );
+}
+.calendar-page .calendar-event {
+    background: #354858;
+    background: color-mix(in srgb, var(--event-accent) 32%, #202833);
+    color: var(--text);
+}
+.calendar-page .calendar-event[open] {
+    background: #42576b;
+    background: color-mix(in srgb, var(--event-accent) 38%, #202833);
+}
+.calendar-page .calendar-event-location,
+.calendar-page .calendar-event-details { color: #e4e8ef; }
+.calendar-page .calendar-event summary small { color: #d6dce6; }
+.calendar-page .current-time-line,
+.calendar-page .current-time-line::before { background: #d9b68e; }
+.calendar-page .current-time-line { box-shadow: none; }
+
+/* Homework deadlines stand apart from subject colours. */
+.calendar-page .calendar-event.homework-deadline {
+    background: #623b36;
+    border: 1px solid #ff8c69;
+    border-left: 4px solid #ff8c69;
+}
+.calendar-page .calendar-event.homework-deadline[open] { background: #75463e; }
+.calendar-page .homework-deadline summary strong { color: #fff0e8; }
