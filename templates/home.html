@@ -3,9 +3,10 @@
 {% block title %}Homework | School Dashboard{% endblock %}
 
 {% block content %}
-<main>
+<main class="homework-page">
     <div class="section-heading">
-        <h2>Homework</h2>
+        <div><p class="section-eyebrow">Your workspace</p><h2>Homework</h2>
+        <p class="section-description">{{ homework | rejectattr('completed') | list | length }} assignments to finish. One thing at a time.</p></div>
         <a class="button" href="{{ url_for('add_homework') }}">Add homework</a>
     </div>
 

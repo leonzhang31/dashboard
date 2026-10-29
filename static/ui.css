@@ -1,0 +1,61 @@
+/* Shared layout and controls. Component styles follow this file. */
+*, *::before, *::after { box-sizing: border-box; }
+html { min-height: 100%; background: var(--bg); color-scheme: dark; }
+body { max-width: 1320px; margin: 0 auto; padding: 48px 40px 80px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 14px; line-height: 1.6; color: var(--text); background: var(--bg); -webkit-font-smoothing: antialiased; }
+h1, h2, h3, p { overflow-wrap: anywhere; }
+h1, h2, h3 { line-height: 1.25; }
+a { color: var(--accent-text); text-underline-offset: 3px; }
+button, input, textarea { font: inherit; color: inherit; }
+button, .button { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 9px 16px; border: 1px solid var(--panel-border); border-radius: 7px; background: var(--panel-soft); color: var(--text); font-size: 13px; font-weight: 500; text-decoration: none; cursor: pointer; touch-action: manipulation; }
+button:hover, .button:hover { background: var(--panel-strong); border-color: #656a62; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 4px; }
+button[type="submit"]:not(.danger), .section-heading > .button { background: var(--secondary); border-color: var(--secondary); color: #18221b; }
+button[type="submit"]:not(.danger):hover, .section-heading > .button:hover { background: var(--secondary-strong); }
+.danger { background: transparent; color: #e7a69b; border-color: transparent; }
+.danger:hover { background: #d9908015; border-color: #d9908040; }
+main { padding: 28px 0; }
+main > h2, .section-heading h2 { font-size: 28px; font-weight: 550; letter-spacing: -.045em; margin: 0; }
+.section-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 28px; }
+.section-eyebrow, .dashboard-eyebrow { margin: 0 0 10px; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .16em; font-weight: 600; }
+.section-description { color: var(--muted); margin: 8px 0 0; font-size: 13px; }
+.dashboard-tabs { display: flex; gap: 28px; border-bottom: 1px solid var(--panel-border); margin-top: 28px; }
+.dashboard-tab { position: relative; padding: 13px 0; color: var(--muted); font-size: 14px; text-decoration: none; }
+.dashboard-tab:hover { color: var(--text); }
+.dashboard-tab.active { color: var(--accent-text); }
+.dashboard-tab.active::after { content: ''; position: absolute; height: 2px; background: var(--accent-text); bottom: -1px; left: 0; right: 0; }
+.homework-card { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 24px; align-items: center; padding: 24px 4px; border-top: 1px solid var(--panel-border); }
+.homework-course { color: var(--accent-text); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; font-weight: 600; }
+.homework-title { font-size: 18px; font-weight: 500; letter-spacing: -.025em; margin: 5px 0 7px; }
+.homework-description { margin: 0 0 8px; color: var(--muted); max-width: 65ch; white-space: pre-wrap; }
+.homework-due { margin: 0; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.homework-due strong { font-weight: 400; }
+.homework-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.homework-actions button, .homework-actions .button { min-height: 36px; padding: 7px 12px; font-size: 12px; }
+.homework-actions form, .due-today-item form { margin: 0; padding: 0; }
+.homework-status { color: var(--muted); padding: 7px 12px; font-size: 12px; }
+.completed .homework-title { text-decoration: line-through; color: var(--muted); }
+.completed .homework-course { color: var(--muted); }
+.due-today { border: 1px solid #dca88635; border-left: 3px solid #dca886; border-radius: 8px; padding: 16px 20px; background: #dca88608; margin-bottom: 24px; }
+.due-today h3 { color: #e3b99d; font-size: 12px; margin: 0 0 10px; font-weight: 500; }
+.due-today-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 5px 0; }
+.due-today-item strong { font-weight: 500; }
+.due-today-item span { color: var(--muted); font-size: 12px; margin-left: 10px; }
+.empty { padding: 60px 20px; text-align: center; color: var(--muted); border: 1px dashed var(--panel-border); border-radius: 10px; }
+.homework-form-page { max-width: 720px; margin: 0 auto; }
+.homework-form-page form { margin-top: 24px; }
+label { display: block; margin: 20px 0 6px; font-size: 12px; font-weight: 500; }
+input, textarea { width: 100%; background: var(--bg-alt); border: 1px solid var(--panel-border); padding: 11px 13px; border-radius: 7px; }
+input:focus, textarea:focus { outline: 2px solid var(--secondary); outline-offset: 2px; }
+input::placeholder, textarea::placeholder { color: var(--muted); }
+input[type="radio"], input[type="checkbox"] { width: auto; accent-color: var(--secondary); }
+textarea { min-height: 120px; resize: vertical; }
+.due-date-field { display: flex; gap: 10px; align-items: stretch; }
+.due-date-field input { min-width: 0; flex: 1; }
+.due-date-field button { flex-shrink: 0; }
+.form-help { min-height: 24px; font-size: 12px; color: var(--muted); margin: 8px 0 24px; }
+.error { color: #efb4a8; }
+.graphic-definitions { position: absolute; width: 0; height: 0; overflow: hidden; }
+[hidden] { display: none !important; }
+@media(max-width: 700px) { body { padding: 24px 20px 48px; } .homework-card { grid-template-columns: 1fr; gap: 16px; } .section-heading { align-items: flex-start; } .section-heading > .button { flex-shrink: 0; } main > h2, .section-heading h2 { font-size: 24px; } }
+@media(max-width: 400px) { body { padding-inline: 14px; } .due-date-field { flex-wrap: wrap; } .due-date-field input { flex-basis: 100%; } }

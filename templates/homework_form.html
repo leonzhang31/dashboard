@@ -3,7 +3,8 @@
 {% block title %}{{ page_title }} | School Dashboard{% endblock %}
 
 {% block content %}
-<main>
+<main class="homework-form-page">
+    <p class="section-eyebrow">Your workspace</p>
     <h2>{{ page_title }}</h2>
     {% if error %}<p class="error">{{ error }}</p>{% endif %}
     <form method="post">

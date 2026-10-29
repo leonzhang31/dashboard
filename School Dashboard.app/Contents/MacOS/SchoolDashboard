@@ -1,0 +1,6 @@
+#!/bin/zsh
+PROJECT_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
+if ! "$PROJECT_DIR/.venv/bin/python" "$PROJECT_DIR/desktop.py"; then
+    /usr/bin/osascript -e 'display alert "School Dashboard could not open" message "Keep the app inside the school-dashboard folder. Check .desktop/server.log for startup details, and make sure Google Chrome is installed." as critical'
+    exit 1
+fi
